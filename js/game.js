@@ -1,42 +1,46 @@
-// Create the canvas
+// 创建canvas
 var canvas = document.createElement("canvas");
 var ctx = canvas.getContext("2d");
 canvas.width = 512;
 canvas.height = 480;
 document.body.appendChild(canvas);
 
-// Background image
-var bgReady = false;
-var bgImage = new Image();
-bgImage.onload = function () {
-	bgReady = true;
-};
-bgImage.src = "images/background.png";
-
-// Hero image
-var heroReady = false;
-var heroImage = new Image();
-heroImage.onload = function () {
-	heroReady = true;
-};
-heroImage.src = "images/hero.png";
-
-// Monster image
-var monsterReady = false;
-var monsterImage = new Image();
-monsterImage.onload = function () {
-	monsterReady = true;
-};
-monsterImage.src = "images/monster.png";
-
-// Game objects
-var hero = {
-	speed: 256 // movement in pixels per second
-};
-var monster = {};
+//全局变量
+//击杀怪兽数
 var monstersCaught = 0;
 
-// Handle keyboard controls
+//加载图片
+//背景图
+var bgImage = new Image();
+bgImage.src = "images/background.png";
+//英雄图1
+var heroImage1 = new Image();
+heroImage1.src = "images/hero1.png";
+//英雄图2
+var heroImage2 = new Image();
+heroImage2.src = "images/hero2.png";
+//怪兽图片
+var monsterImage = new Image();
+monsterImage.src = "images/monster.png";
+//英雄图片数组
+var heroImageArray = [heroImage1,heroImage2];
+//英雄当前图片数组位置heroA
+var heroA = 0;
+
+//游戏对象
+//英雄
+var hero = {
+	speed: 256,//移动速度每秒
+	image: heroImage1
+};
+//怪兽
+var monster = {
+	speed: 256,//移动速度每秒
+	image: monsterImage
+};
+
+
+//键盘监听
 var keysDown = {};
 
 addEventListener("keydown", function (e) {
@@ -47,32 +51,30 @@ addEventListener("keyup", function (e) {
 	delete keysDown[e.keyCode];
 }, false);
 
-// Reset the game when the player catches a monster
+//重置游戏（初始化英雄在中间位置，怪兽在随机位置）
 var reset = function () {
 	hero.x = canvas.width / 2;
 	hero.y = canvas.height / 2;
-
-	// Throw the monster somewhere on the screen randomly
 	monster.x = 32 + (Math.random() * (canvas.width - 64));
 	monster.y = 32 + (Math.random() * (canvas.height - 64));
 };
 
-// Update game objects
+//更新英雄位置坐标
 var update = function (modifier) {
-	if (38 in keysDown) { // Player holding up
+	if (38 in keysDown) { //向上键
 		hero.y -= hero.speed * modifier;
 	}
-	if (40 in keysDown) { // Player holding down
+	if (40 in keysDown) { //向下键
 		hero.y += hero.speed * modifier;
 	}
-	if (37 in keysDown) { // Player holding left
+	if (37 in keysDown) { //向左键
 		hero.x -= hero.speed * modifier;
 	}
-	if (39 in keysDown) { // Player holding right
+	if (39 in keysDown) { //向右键
 		hero.x += hero.speed * modifier;
 	}
 
-	// Are they touching?
+	//判断是否图片碰撞
 	if (
 		hero.x <= (monster.x + 32)
 		&& monster.x <= (hero.x + 32)
@@ -84,47 +86,54 @@ var update = function (modifier) {
 	}
 };
 
-// Draw everything
+//作画
 var render = function () {
-	if (bgReady) {
-		ctx.drawImage(bgImage, 0, 0);
-	}
-
-	if (heroReady) {
-		ctx.drawImage(heroImage, hero.x, hero.y);
-	}
-
-	if (monsterReady) {
-		ctx.drawImage(monsterImage, monster.x, monster.y);
-	}
-
-	// Score
+	ctx.drawImage(bgImage, 0, 0);
+	ctx.drawImage(hero.image, hero.x, hero.y);
+	ctx.drawImage(monster.image, monster.x, monster.y);
+	console.log(hero.image.src);
 	ctx.fillStyle = "rgb(250, 250, 250)";
 	ctx.font = "24px Helvetica";
 	ctx.textAlign = "left";
 	ctx.textBaseline = "top";
-	ctx.fillText("Goblins caught: " + monstersCaught, 32, 32);
+	ctx.fillText("击杀怪兽数：" + monstersCaught, 32, 32);
 };
 
-// The main game loop
+//运行主方法
 var main = function () {
 	var now = Date.now();
 	var delta = now - then;
-
+	//更新英雄坐标
 	update(delta / 1000);
+	//作画
 	render();
 
 	then = now;
-
-	// Request to do this again ASAP
+	//定时执行
 	requestAnimationFrame(main);
 };
 
-// Cross-browser support for requestAnimationFrame
+//更新英雄图片
+var changeHeroImage = function(){
+	var now = Date.now();
+	if(now - heroChangeDate > 150){//150毫秒更新一次
+		hero.image = heroImageArray[heroA];
+		heroA ++ ;
+		if(heroA == heroImageArray.length){
+			heroA = 0 ;
+		}
+		heroChangeDate = now;
+	}
+	//定时执行
+	requestAnimationFrame(changeHeroImage);
+}
+//多个||避免浏览器兼容问题
 var w = window;
 requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame || w.msRequestAnimationFrame || w.mozRequestAnimationFrame;
 
-// Let's play this game!
+//开始游戏
 var then = Date.now();
+var heroChangeDate = Date.now();
 reset();
 main();
+changeHeroImage();
