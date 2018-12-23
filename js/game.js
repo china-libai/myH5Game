@@ -1,9 +1,12 @@
 // 创建canvas
-var canvas = document.createElement("canvas");
+//var canvas = document.createElement("canvas");
+//var ctx = canvas.getContext("2d");
+//canvas.width = 512;
+//canvas.height = 480;
+//document.body.appendChild(canvas);
+//获取canvas
+var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
-canvas.width = 512;
-canvas.height = 480;
-document.body.appendChild(canvas);
 
 //全局变量
 //击杀怪兽数
@@ -70,7 +73,7 @@ var init = function () {
 		monster.speed = monsterDef.speed + Math.random()*20;
 		monster.image = monsterDef.image;
 		monster.isKilled = false;
-		monster.changeDate = monsterDef.changeDate;
+		monster.changeDate = null;
 		monster.x = 32 + (Math.random() * (canvas.width - 64));
 		monster.y = 32 + (Math.random() * (canvas.height - 64));
 		monsterArray[i]=monster;
@@ -117,7 +120,7 @@ var updateHeroXY = function (modifier) {
 			monster.isKilled = true;
 		}
 	}
-	
+
 };
 
 //更新怪兽位置坐标
@@ -131,12 +134,15 @@ var updateMonsterXY = function(){
 			monster.speed = monsterDef.speed + Math.random()*20;
 			monster.image = monsterDef.image;
 			monster.isKilled = false;
-			monster.changeDate = monsterDef.changeDate;
+			monster.changeDate = null;
 			monster.x = 32 + (Math.random() * (canvas.width - 64));
 			monster.y = 32 + (Math.random() * (canvas.height - 64));
 			monsterArray[i]=monster;
 		}else{
 			var now = Date.now();
+			if(monster.changeDate==null){
+				monster.changeDate = Date.now();
+			}
 			var runTime = (now - monster.changeDate)/1000;
 			if(monster.XStatus == 1){
 				monster.x = monster.x + monster.speed*runTime;
@@ -147,11 +153,11 @@ var updateMonsterXY = function(){
 				if(monster.x<0){
 					monster.x = 0
 				}else{
-					monster.x = canvas.width-32	
+					monster.x = canvas.width-32
 				}
 				monster.XStatus = monster.XStatus * -1;
 			}
-			
+
 			if(monster.YStatus == 1){
 				monster.y = monster.y + monster.speed*runTime;
 			}else{
@@ -167,7 +173,7 @@ var updateMonsterXY = function(){
 			}
 			monster.changeDate = now;
 		}
-		
+
 	}
 	requestAnimationFrame(updateMonsterXY);
 };
@@ -178,9 +184,9 @@ var render = function () {
 	ctx.drawImage(hero.image, hero.x, hero.y);
 	for(var i=0;i<monsterArray.length;i++){
 		var monster = monsterArray[i];
-		ctx.drawImage(monster.image, monster.x, monster.y);	
+		ctx.drawImage(monster.image, monster.x, monster.y);
 	}
-	
+
 	ctx.fillStyle = "rgb(250, 250, 250)";
 	ctx.font = "24px Helvetica";
 	ctx.textAlign = "left";
@@ -220,10 +226,16 @@ var changeHeroImage = function(){
 var w = window;
 requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame || w.msRequestAnimationFrame || w.mozRequestAnimationFrame;
 
-//开始游戏
 var then = Date.now();
 var heroChangeDate = Date.now();
+
 init();
 main();
-changeHeroImage();
-updateMonsterXY();
+	
+//开始游戏
+var startGame = function(){
+	changeHeroImage();
+	updateMonsterXY();
+}
+
+//startGame();
